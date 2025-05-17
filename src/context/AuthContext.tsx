@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      axiosInstance.get("/client/auth/me").then((res) => {
+      axiosInstance.get("/users/auth/me").then((res) => {
         const data = res.data.data;
         console.log(data);
         setUser(data.user);
