@@ -91,7 +91,7 @@ function AddressForm({ loading, address, onSubmit }: Props) {
             htmlFor="postal-code"
             className="block text-sm/6 font-medium text-gray-900"
           >
-            Postal
+            Postal Code
           </label>
           <div className="mt-2">
             <input
