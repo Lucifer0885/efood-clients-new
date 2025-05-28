@@ -14,11 +14,7 @@ export type Address = {
     phone?: string;
     floor?: string;
     door?: string;
-}
-
-export type AddressResponse = BaseResponse<{
-    addresses: Address[];
-}>
+};
 
 export type CreateAddressPayload = {
     street: string;
@@ -33,6 +29,10 @@ export type CreateAddressPayload = {
     floor?: string;
     door?: string;
 };
+
+export type AddressResponse = BaseResponse<{
+    addresses: Address[];
+}>;
 
 export type CreateAddressResponse = BaseResponse<{
     address: Address;

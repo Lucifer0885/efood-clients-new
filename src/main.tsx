@@ -8,29 +8,44 @@ import Register from "./pages/Register.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import Profile from "./pages/Profile.tsx";
 import Stores from "./pages/Stores.tsx";
-import ProtectedRoute from "./components/helper/ProtectedRoute.tsx";
+import AuthRoute from "./components/helper/AuthRoute.tsx";
+import NoAuthRoute from "./components/helper/NoAuthRoute.tsx";
+import Store from "./pages/Store.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter>
     <AuthProvider>
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-
-          {/* Auth */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* Protected Routes */}
+          <Route path="/" element={
+            <NoAuthRoute>
+              <Home />
+            </NoAuthRoute>
+          } />
+          <Route path="/login" element={
+            <NoAuthRoute>
+              <Login />
+            </NoAuthRoute>
+          } />
+          <Route path="/register" element={
+            <NoAuthRoute>
+              <Register />
+            </NoAuthRoute>
+          } />
           <Route path="/stores" element={
-            <ProtectedRoute>
+            <AuthRoute>
               <Stores />
-            </ProtectedRoute>
+            </AuthRoute>
+          }/>
+          <Route path="/stores/:id" element={
+            <AuthRoute>
+              <Store />
+            </AuthRoute>
           }/>
           <Route path="/profile" element={
-            <ProtectedRoute>
+            <AuthRoute>
               <Profile />
-            </ProtectedRoute>
+            </AuthRoute>
           }/>
         </Route>
       </Routes>

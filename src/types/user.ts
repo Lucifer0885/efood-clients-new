@@ -10,7 +10,7 @@ export type User = {
 
     phone?: string;
     avatar?: string;
-}
+};
 
 export type LoginCredentials = {
     email: string;
@@ -32,4 +32,3 @@ export type RegisterResponse = BaseResponse<{
     token: string;
     user: User;
 }>;
-

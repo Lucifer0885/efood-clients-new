@@ -80,7 +80,6 @@ function Login() {
               </button>
               <Link
                 to={"/register"}
-                
                 className="flex w-full justify-center btn btn-soft"
               >
                 Register
