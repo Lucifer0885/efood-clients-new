@@ -10,7 +10,7 @@ function Profile() {
   const [ addresses, setAddresses ] = useState<Address[]>([]);
 
   useEffect(() => {
-    axiosInstance.get<AddressResponse>('/client/users/addresses').then((res) => {
+    axiosInstance.get<AddressResponse>('/client/addresses').then((res) => {
       if (!res.data.success) {
         return;
       }

@@ -33,3 +33,7 @@ export type CreateAddressPayload = {
     floor?: string;
     door?: string;
 };
+
+export type CreateAddressResponse = BaseResponse<{
+    address: Address;
+}>;

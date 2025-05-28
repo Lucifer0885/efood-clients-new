@@ -7,6 +7,7 @@ import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import Profile from "./pages/Profile.tsx";
+import Stores from "./pages/Stores.tsx";
 import ProtectedRoute from "./components/helper/ProtectedRoute.tsx";
 
 createRoot(document.getElementById("root")!).render(
@@ -21,11 +22,16 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/register" element={<Register />} />
 
           {/* Protected Routes */}
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }/>
+          <Route path="/stores" element={
+            <ProtectedRoute>
+              <Stores />
+            </ProtectedRoute>
+          }/>
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }/>
         </Route>
       </Routes>
     </AuthProvider>

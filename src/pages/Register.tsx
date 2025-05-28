@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext.tsx";
 import { Link } from "react-router";
 
 function Register() {
-  const { register } = useAuth();
+  const { loading, register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,21 +19,8 @@ function Register() {
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-white">
-        <body class="h-full">
-        ```
-      */}
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
-            alt="Your Company"
-            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-            className="mx-auto h-10 w-auto"
-          />
           <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">
             Register a new account
           </h2>
@@ -124,9 +111,15 @@ function Register() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={onRegister}
+                disabled={loading}
+                type="submit"
                 className="flex w-full justify-center btn btn-primary"
               >
-                Register
+                {
+                  loading
+                    ? <span className="loading loading-spinner"></span>
+                    : "Register"
+                }
               </button>
               <Link
                 to={"/login"}

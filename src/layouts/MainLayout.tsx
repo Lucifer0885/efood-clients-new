@@ -6,10 +6,10 @@ function MainLayout() {
   return (
     <>
         <Header />
-        <div className="px-10 py-6">
+        <div className="p-6">
           <Outlet />
         </div>
-        <Footer />
+        {/* <Footer /> */}
     </>
   );
 }

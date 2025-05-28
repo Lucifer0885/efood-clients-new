@@ -13,12 +13,14 @@ import { useNavigate } from "react-router";
 const AuthContext = createContext<{
   user: User | null;
   token: string | null;
+  loading: boolean;
   login: ({ email, password }: LoginCredentials) => void;
   register: ({ name, email, password }: RegisterCredentials) => void;
   logout: () => void;
 }>({
   user: null,
   token: null,
+  loading: false,
   login: () => {},
   register: () => {},
   logout: () => {},
@@ -30,6 +32,7 @@ export const AuthProvider = ({ children }) => {
     ? (JSON.parse(localStorageUser) as User)
     : null;
   const [user, setUser] = useState<User | null>(parsedUser);
+  const [loading, setLoading] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
@@ -45,6 +48,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = ({ email, password }: LoginCredentials) => {
+  setLoading(true);
     axiosInstance
       .post<LoginResponse>("/client/auth/login", { email, password })
       .then((res) => {
@@ -54,10 +58,14 @@ export const AuthProvider = ({ children }) => {
 
         const data = res.data.data;
         afterAuthentication(data);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
   const register = ({ name, email, password }: RegisterCredentials) => {
+    setLoading(true);
     axiosInstance
       .post<RegisterResponse>("/client/auth/register", {
         name,
@@ -71,6 +79,9 @@ export const AuthProvider = ({ children }) => {
 
         const data = res.data.data;
         afterAuthentication(data);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -94,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
