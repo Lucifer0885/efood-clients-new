@@ -1,34 +1,50 @@
-import type { PossibleStoreListLayout, Store } from "../../types/stores";
-import React from "react";
 import { Link } from "react-router";
+import type { Store, PossibleStoreListLayout } from "../../types/stores";
+import { useCartStore } from "../../context/CartStore";
 
 type Props = {
   layout: PossibleStoreListLayout;
   stores: Store[];
 };
 
-function StoresList({ stores, layout }: Props) {
-  const cardStore = (store: Store): React.JSX.Element => (
+function StoresList({ layout, stores }: Props) {
+  const cartStores = useCartStore((state) => state.stores);
+
+  const activeCart = (store: Store, size: string = "badge-sm") =>
+    cartStores?.[store.id]?.products?.length ? (
+      <div className="mb-3">
+        <div className={"badge badge-error text-white " + size}>
+          {cartStores?.[store.id]?.products.reduce((total, product) => {
+            return total + product.quantity;
+          }, 0)}{" "}
+          products in cart
+        </div>
+      </div>
+    ) : null;
+
+  const gridStore = (store: Store) => (
     <Link to={"/stores/" + store.id} key={store.id}>
       <div className="card bg-base-100 w-full shadow-sm">
         <figure className="relative">
-          <img src={store.cover["original_url"]} alt="Store cover" />
+          <img src={store.cover['original_url']} alt={store.name} />
           {store.logo && (
             <div
               className="avatar absolute"
               style={{ left: "15px", bottom: "15px" }}
             >
               <div className="w-[40px] ring-gray-300 ring-offset-base-100 rounded-full ring ring-offset-2">
-                <img src={store.logo["original_url"]} />
+                <img src={store.logo['original_url']} />
               </div>
             </div>
           )}
           {store.shipping_price && (
-            <div
-              className="absolute px-1.5 bg-white rounded-t-lg"
-              style={{ right: "10px", bottom: "0px" }}
-            >
-              <span className="text-xs">Delivery {store.shipping_price}€</span>
+            <div className="absolute" style={{ right: "10px", bottom: "0" }}>
+              {activeCart(store)}
+              <div className="px-1.5 bg-white rounded-t-lg text-center">
+                <span className="text-xs">
+                  Delivery {store.shipping_price}€
+                </span>
+              </div>
             </div>
           )}
         </figure>
@@ -48,14 +64,14 @@ function StoresList({ stores, layout }: Props) {
     </Link>
   );
 
-  const listStore = (): React.JSX.Element => (
+  const listStores = () => (
     <ul role="list" className="divide-y divide-gray-100">
       {stores.map((store) => (
         <li key={store.id}>
           <Link to={"/stores/" + store.id} className="flex gap-x-4 py-5">
             <img
               alt=""
-              src={store.logo["original_url"]}
+              src={store.logo['original_url']}
               className="size-12 flex-none rounded-full bg-gray-50"
             />
             <div className="min-w-0">
@@ -73,6 +89,7 @@ function StoresList({ stores, layout }: Props) {
                 <span>·</span>
                 <span>Delivery {store.shipping_price}€</span>
               </div>
+              {activeCart(store, "badge-xs")}
             </div>
           </Link>
         </li>
@@ -84,9 +101,9 @@ function StoresList({ stores, layout }: Props) {
     <div className="flex flex-col gap-3">
       {stores?.length ? (
         layout === "grid" ? (
-          stores.map((store) => cardStore(store))
+          stores.map((store) => gridStore(store))
         ) : (
-          listStore()
+          listStores()
         )
       ) : (
         <div className="flex flex-col gap-3 items-center">

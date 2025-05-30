@@ -11,11 +11,12 @@ import {
 } from "@headlessui/react";
 import { UserIcon } from "@heroicons/react/24/solid";
 import Addresses from "../components/header/Addresses";
+import { useCartStore } from "../context/CartStore";
 
 function Header() {
   const { user, logout } = useAuth();
 
-  function classNames(...classes) {
+  function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(" ");
   }
 

@@ -2,15 +2,19 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import type { StoreResponse, Store as StoreType } from "../types/stores";
 import axiosInstance from "../api/axiosInstance";
-import type { ProductCategory } from "../types/products";
-import { ChevronLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import type { Product, ProductCategory } from "../types/products";
 import {
-  Dialog,
-  DialogBackdrop,
-  DialogPanel,
-} from "@headlessui/react";
+  ChevronLeftIcon,
+  MinusIcon,
+  PlusIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import GoogleMap from "google-maps-react-markers";
 import MapMarker from "../components/profile/MapMarker";
+import { useCartStore } from "../context/CartStore";
+import StoreProduct from "../components/stores/StoreProduct";
+import ProductQuantityControls from "../components/stores/ProductQuantityControls";
 
 const days = [
   "Monday",
@@ -24,12 +28,17 @@ const days = [
 
 function Store() {
   const params = useParams();
-
+  const stores = useCartStore((state) => state.stores);
+  const addItem = useCartStore((state) => state.addItem);
+  const [loading, setLoading] = useState<boolean>(true);
   const [store, setStore] = useState<StoreType | null>(null);
-  const [showBanner, setShowBanner] = useState(false);
-  const [showStoreName, setShowStoreName] = useState(false);
-  const [showCategories, setShowCategories] = useState(false);
-  const [openInformation, setOpenInformation] = useState(false);
+  const [showBanner, setShowBanner] = useState<boolean>(false);
+  const [showStoreName, setShowStoreName] = useState<boolean>(false);
+  const [showCategories, setShowCategories] = useState<boolean>(false);
+  const [openInformation, setOpenInformation] = useState<boolean>(false);
+  const [openProduct, setOpenProduct] = useState<boolean>(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productQuantity, setProductQuantity] = useState<number>(1);
 
   useEffect(() => {
     const id = params.id;
@@ -41,10 +50,15 @@ function Store() {
           return;
         }
         // TODO Handle this on the backend
-        // response.data.data.store.product_categories = response.data.data.store.product_categories?.filter(pc => !!pc.products?.length);
+        response.data.data.store.product_categories =
+          response.data.data.store.product_categories?.filter(
+            (pc) => !!pc.products?.length
+          );
         setStore(response.data.data.store);
       })
-      .finally();
+      .finally(() => {
+        setLoading(false);
+      });
 
     window.addEventListener("scroll", isSticky);
     return () => {
@@ -65,12 +79,76 @@ function Store() {
     window.scrollTo({ top: scrollTop - 70, behavior: "smooth" });
   };
 
-  return (
+  const onSelectProduct = (product: Product) => {
+    setOpenProduct(true);
+    setSelectedProduct(product);
+
+    const productInCart = stores[store!.id]?.products.find(
+      (item) => item.product.id === product.id);
+    setProductQuantity(productInCart?.quantity ?? 1);
+  };
+
+  const addToCart = () => {
+    addItem(store!.id, selectedProduct!, productQuantity);
+    setOpenProduct(false);
+  }
+
+  const skeleton = (
+    <div>
+      <div className="hero relative h-[200px] skeleton" />
+
+      <section className="p-4">
+        <div className="flex justify-between items-center">
+          <h1 className="skeleton h-[28px] w-[120px]" />
+          <div className="avatar">
+            <div className="w-[50px] skeleton ring-gray-300 ring-offset-base-100 rounded-full ring ring-offset-2" />
+          </div>
+        </div>
+        <div className="mt-3 truncate text-xs/5 text-gray-500 flex items-center gap-1 justify-end">
+          <span className="skeleton h-[20px] w-[120px]" />
+          <span className="skeleton h-[20px] w-[60px]" />
+        </div>
+
+        <div className="mt-4">
+          {[1, 2, 3].map((category) => (
+            <div key={category}>
+              <h2 className="skeleton h-[28px] w-[120px] mb-3" />
+              <div className="border-b border-black" />
+              {[1, 2, 3]?.map((product, index, array) => (
+                <div
+                  key={product}
+                  className={`flex justify-between gap-2 py-3 ${
+                    index !== array.length - 1 ? "border-b border-gray-200" : ""
+                  }`}
+                >
+                  <div className="flex flex-col gap-3">
+                    <h3 className="skeleton h-[20px] w-[100px]" />
+                    <p className="skeleton h-[20px] w-[150px]" />
+                    <div className="skeleton h-[20px] w-[80px]" />
+                  </div>
+
+                  <div>
+                    <div className="avatar">
+                      <div className="w-26 rounded-xl skeleton" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+
+  return loading ? (
+    skeleton
+  ) : (
     <main>
       <div
         className="hero relative h-[200px]"
         style={{
-          backgroundImage: "url(" + store?.cover['original_url'] + ")",
+          backgroundImage: "url(" + store?.cover["original_url"] + ")",
         }}
       >
         <div
@@ -135,7 +213,7 @@ function Store() {
           <h1 className="font-bold text-lg">{store?.name}</h1>
           <div className="avatar">
             <div className="w-[50px] ring-gray-300 ring-offset-base-100 rounded-full ring ring-offset-2">
-              <img src={store?.logo['original_url']} />
+              <img src={store?.logo["original_url"]} />
             </div>
           </div>
         </div>
@@ -153,28 +231,14 @@ function Store() {
               </h2>
               {category.products?.map((product, index, array) => (
                 <div
+                  className={"pb-4 " + (index !== array.length - 1 ? "border-b border-gray-200" : "")}
                   key={product.id}
-                  className={`flex justify-between gap-2 py-3 ${
-                    index !== array.length - 1 ? "border-b border-gray-200" : ""
-                  }`}
                 >
-                  <div className="flex flex-col gap-3">
-                    <h3 className="font-bold text-sm">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-gray-500 text-xs">
-                        {product.description}
-                      </p>
-                    )}
-                    <div className="text-sm">From {product.price}€</div>
-                  </div>
-
-                  <div>
-                    <div className="avatar">
-                      <div className="w-26 rounded-xl">
-                        <img src={product.mainImage} />
-                      </div>
-                    </div>
-                  </div>
+                  <StoreProduct
+                    store={store!}
+                    product={product}
+                    onSelectProduct={onSelectProduct}
+                  />
                 </div>
               ))}
             </div>
@@ -247,6 +311,79 @@ function Store() {
                     </ul>
                   </>
                 )}
+              </div>
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={openProduct}
+        onClose={setOpenProduct}
+        className="relative z-10"
+      >
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+        />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full h-full items-end justify-center text-center sm:items-center sm:p-0">
+            <DialogPanel
+              transition
+              className="relative bg-gray-50 h-full w-full transform overflow-hidden text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+            >
+              <div
+                className="hero relative h-[300px]"
+                style={{
+                  backgroundImage: "url(" + selectedProduct?.mainImage + ")",
+                }}
+              >
+                <div
+                  className="flex justify-end items-center absolute p-4 w-full"
+                  style={{ top: 0 }}
+                >
+                  <button
+                    className="btn btn-circle size-8"
+                    onClick={() => setOpenProduct(false)}
+                  >
+                    <XMarkIcon className="size-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="bg-white rounded-b-2xl p-4 shadow-lg flex flex-col">
+                <h2 className="font-bold mb-3">{selectedProduct?.name}</h2>
+                <p className="text-gray-500 text-sm mb-5">
+                  {selectedProduct?.description}
+                </p>
+                <div className="font-bold text-lg">
+                  {selectedProduct?.price.toFixed(2)}€
+                </div>
+              </div>
+              <div className="p-4">
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Notes</legend>
+                  <textarea
+                    className="textarea h-24 bg-white w-full"
+                    placeholder="Write your preferences (optional)"
+                    rows={3}
+                  ></textarea>
+                </fieldset>
+              </div>
+              <div className="bg-white p-4 shadow-lg flex justify-between gap-10">
+                <ProductQuantityControls
+                  quantity={productQuantity}
+                  onDecreaseQuantity={() => setProductQuantity((prev) => prev > 0 ? prev - 1 : 0)}
+                  onIncreaseQuantity={() => setProductQuantity((prev) => prev + 1)}
+                />
+                <div className="grow">
+                  <button
+                    className="btn btn-success btn-lg btn-block text-white"
+                    onClick={() => addToCart()}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               </div>
             </DialogPanel>
           </div>
