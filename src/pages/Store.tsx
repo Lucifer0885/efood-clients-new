@@ -3,33 +3,21 @@ import { Link, useParams } from "react-router";
 import type { StoreResponse, Store as StoreType } from "../types/stores";
 import axiosInstance from "../api/axiosInstance";
 import type { Product, ProductCategory } from "../types/products";
-import {
-  ChevronLeftIcon,
-  MinusIcon,
-  PlusIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import GoogleMap from "google-maps-react-markers";
-import MapMarker from "../components/profile/MapMarker";
+import { ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useCartStore } from "../context/CartStore";
 import StoreProduct from "../components/stores/StoreProduct";
-import ProductQuantityControls from "../components/stores/ProductQuantityControls";
-
-const days = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+import StoreInformationDialog from "../components/stores/StoreInformationDialog";
+import StoreProductDialog from "../components/stores/StoreProductDialog";
+import StoreCartSummaryDialog from "../components/stores/StoreCardSummaryDialog";
+import StoreShippingMethodDialog from "../components/stores/StoreShippingMethodDialong";
 
 function Store() {
   const params = useParams();
-  const stores = useCartStore((state) => state.stores);
-  const addItem = useCartStore((state) => state.addItem);
+
+  const cartProducts = useCartStore(
+    (state) => state.selectStore(+params.id!)?.products
+  );
+
   const [loading, setLoading] = useState<boolean>(true);
   const [store, setStore] = useState<StoreType | null>(null);
   const [showBanner, setShowBanner] = useState<boolean>(false);
@@ -37,6 +25,9 @@ function Store() {
   const [showCategories, setShowCategories] = useState<boolean>(false);
   const [openInformation, setOpenInformation] = useState<boolean>(false);
   const [openProduct, setOpenProduct] = useState<boolean>(false);
+  const [openCartSummary, setOpenCartSummary] = useState<boolean>(false);
+  const [openShippingMethod, setOpenShippingMethod] = useState<boolean>(false);
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
 
@@ -66,6 +57,8 @@ function Store() {
     };
   }, []);
 
+  useEffect(() => {}, [cartProducts]);
+
   const isSticky = (e) => {
     const scrollTop = window.scrollY;
     setShowBanner(scrollTop >= 150);
@@ -82,16 +75,8 @@ function Store() {
   const onSelectProduct = (product: Product) => {
     setOpenProduct(true);
     setSelectedProduct(product);
-
-    const productInCart = stores[store!.id]?.products.find(
-      (item) => item.product.id === product.id);
-    setProductQuantity(productInCart?.quantity ?? 1);
+    setProductQuantity(1);
   };
-
-  const addToCart = () => {
-    addItem(store!.id, selectedProduct!, productQuantity);
-    setOpenProduct(false);
-  }
 
   const skeleton = (
     <div>
@@ -208,7 +193,7 @@ function Store() {
           )}
         </div>
       )}
-      <section className="p-4">
+      <section className="p-4 pb-16">
         <div className="flex justify-between items-center">
           <h1 className="font-bold text-lg">{store?.name}</h1>
           <div className="avatar">
@@ -231,7 +216,12 @@ function Store() {
               </h2>
               {category.products?.map((product, index, array) => (
                 <div
-                  className={"pb-4 " + (index !== array.length - 1 ? "border-b border-gray-200" : "")}
+                  className={
+                    "pb-4 " +
+                    (index !== array.length - 1
+                      ? "border-b border-gray-200"
+                      : "")
+                  }
                   key={product.id}
                 >
                   <StoreProduct
@@ -246,149 +236,72 @@ function Store() {
         </div>
       </section>
 
-      <Dialog
+      {cartProducts?.length > 0 && (
+        <div
+          className="fixed p-3 w-full bg-white shadow-md z-1"
+          style={{ bottom: 0, left: 0, right: 0 }}
+        >
+          <button
+            disabled={productQuantity <= 0}
+            className="btn btn-success btn-lg btn-block text-white p-2 grid grid-cols-3"
+            onClick={() => setOpenCartSummary(true)}
+          >
+            <div className="col-span-1 text-start">
+              <span className="inline-block p-1 min-w-[28px] text-black font-bold text-center text-sm rounded-lg bg-white">
+                {cartProducts.reduce((total, product) => {
+                  return total + product.quantity;
+                }, 0)}
+              </span>
+            </div>
+            <div className="col-span-1 font-bold text-xl text-black text-center">
+              Cart
+            </div>
+            <div className="col-span-1 font-bold text-lg text-black text-end">
+              {cartProducts
+                .reduce((total, product) => {
+                  return total + product.quantity * product.product.price;
+                }, 0)
+                .toFixed(2)}
+              €
+            </div>
+          </button>
+        </div>
+      )}
+
+      <StoreInformationDialog
         open={openInformation}
-        onClose={setOpenInformation}
-        className="relative z-10"
-      >
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-        />
+        setOpen={setOpenInformation}
+        store={store!}
+      />
 
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative min-w-[90%] transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-sm sm:p-6 lg:max-w-[90%] data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
-              <div className="flex justify-end">
-                <button
-                  className="btn btn-circle size-8"
-                  onClick={() => setOpenInformation(false)}
-                >
-                  <XMarkIcon className="size-4" />
-                </button>
-              </div>
-              <div>
-                <h2 className="font-bold text-md">Store Address</h2>
-                <p className="text-gray-400 mb-2">{store?.address}</p>
-                <div>
-                  {openInformation && store && (
-                    <GoogleMap
-                      apiKey=""
-                      defaultCenter={{
-                        lat: +store?.latitude,
-                        lng: +store?.longitude,
-                      }}
-                      defaultZoom={5}
-                      options={{}}
-                      mapMinHeight="400px"
-                    >
-                      <MapMarker
-                        lat={+store?.latitude}
-                        lng={+store?.longitude}
-                        markerId={"address-location"}
-                      ></MapMarker>
-                    </GoogleMap>
-                  )}
-                </div>
-                {store?.working_hours?.length && (
-                  <>
-                    <h2 className="font-bold text-md mt-4">Working Hours</h2>
-                    <ul className="divide-y divide-gray-200">
-                      {store?.working_hours.map((wh, index) => (
-                        <li
-                          key={index}
-                          className="py-3 flex items-center justify-between"
-                        >
-                          <div className="font-bold text-sm">{days[index]}</div>
-                          <div className="text-gray-500 text-sm">
-                            {wh.start} - {wh.end}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
-
-      <Dialog
+      <StoreProductDialog
+        selectedProduct={selectedProduct}
+        productQuantity={productQuantity}
+        store={store!}
         open={openProduct}
-        onClose={setOpenProduct}
-        className="relative z-10"
-      >
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-        />
+        setOpen={setOpenProduct}
+        onDecreaseQuantity={() =>
+          setProductQuantity((prev) => (prev > 1 ? prev - 1 : 1))
+        }
+        onIncreaseQuantity={() => setProductQuantity((prev) => prev + 1)}
+      />
 
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full h-full items-end justify-center text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative bg-gray-50 h-full w-full transform overflow-hidden text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
-              <div
-                className="hero relative h-[300px]"
-                style={{
-                  backgroundImage: "url(" + selectedProduct?.mainImage + ")",
-                }}
-              >
-                <div
-                  className="flex justify-end items-center absolute p-4 w-full"
-                  style={{ top: 0 }}
-                >
-                  <button
-                    className="btn btn-circle size-8"
-                    onClick={() => setOpenProduct(false)}
-                  >
-                    <XMarkIcon className="size-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="bg-white rounded-b-2xl p-4 shadow-lg flex flex-col">
-                <h2 className="font-bold mb-3">{selectedProduct?.name}</h2>
-                <p className="text-gray-500 text-sm mb-5">
-                  {selectedProduct?.description}
-                </p>
-                <div className="font-bold text-lg">
-                  {selectedProduct?.price.toFixed(2)}€
-                </div>
-              </div>
-              <div className="p-4">
-                <fieldset className="fieldset">
-                  <legend className="fieldset-legend">Notes</legend>
-                  <textarea
-                    className="textarea h-24 bg-white w-full"
-                    placeholder="Write your preferences (optional)"
-                    rows={3}
-                  ></textarea>
-                </fieldset>
-              </div>
-              <div className="bg-white p-4 shadow-lg flex justify-between gap-10">
-                <ProductQuantityControls
-                  quantity={productQuantity}
-                  onDecreaseQuantity={() => setProductQuantity((prev) => prev > 0 ? prev - 1 : 0)}
-                  onIncreaseQuantity={() => setProductQuantity((prev) => prev + 1)}
-                />
-                <div className="grow">
-                  <button
-                    className="btn btn-success btn-lg btn-block text-white"
-                    onClick={() => addToCart()}
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
+      {!!store && (
+        <StoreCartSummaryDialog
+          open={openCartSummary}
+          setOpen={setOpenCartSummary}
+          store={store}
+          onOpenShippingMethod={() => setOpenShippingMethod(true)}
+        />
+      )}
+
+      {!!store && (
+        <StoreShippingMethodDialog
+          open={openShippingMethod}
+          setOpen={setOpenShippingMethod}
+          store={store}
+        />
+      )}
     </main>
   );
 }

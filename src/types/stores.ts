@@ -34,3 +34,5 @@ export type StoreResponse = BaseResponse<{
 }>;
 
 export type PossibleStoreListLayout = 'grid' | 'list';
+
+export type ShippingMethod = "delivery" | "takeaway";

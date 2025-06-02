@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import axiosInstance from "../../api/axiosInstance";
 import type {
   Address,
   AddressResponse,
   CreateAddressPayload,
   CreateAddressResponse,
 } from "../../types/addresses";
+import axiosInstance from "../../api/axiosInstance";
 import {
   BuildingOffice2Icon,
   ChevronDownIcon,
@@ -19,13 +19,21 @@ import {
 } from "@headlessui/react";
 import AddressForm from "../profile/AddressForm";
 import AddressesList from "./AddressesList";
+import { ChevronRightIcon } from "@heroicons/react/24/solid";
 
-function Addresses() {
+type Props = {
+  cartSummary?: boolean;
+};
+
+function Addresses({ cartSummary }: Props) {
   const localStorageAddress = localStorage.getItem("address");
-  const [addressesLoading, setAddressesLoading] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
+
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+
   const [openAddresses, setOpenAddresses] = useState(false);
   const [openCreateAddress, setOpenCreateAddress] = useState(false);
 
@@ -62,12 +70,12 @@ function Addresses() {
         ...data,
         postal_code: data.postalCode,
       })
-      .then((res) => {
-        if (!res.data.success) {
+      .then((response) => {
+        if (!response.data.success) {
           return;
         }
 
-        setAddresses([...addresses, res.data.data.address]);
+        setAddresses([...addresses, response.data.data.address]);
         setOpenCreateAddress(false);
         setOpenAddresses(true);
       })
@@ -83,23 +91,50 @@ function Addresses() {
   };
 
   return (
-    <div className="">
-      <button
-        className="btn btn-ghost flex items-center justify-between"
-        onClick={() => setOpenAddresses(true)}
-      >
-        <span className="">
-          {selectedAddress ? (
+    <div>
+      {!cartSummary ? (
+        <button
+          className="btn btn-ghost flex justify-between items-center"
+          onClick={() => setOpenAddresses(true)}
+        >
+          <span>
+            {selectedAddress ? (
+              <span>
+                {selectedAddress.street} {selectedAddress.number}
+              </span>
+            ) : addressesLoading ? (
+              <div className="skeleton h-4 w-28"></div>
+            ) : (
+              "No address selected..."
+            )}
+          </span>
+          <ChevronDownIcon className="size-4" />
+        </button>
+      ) : (
+        <div className="w-full rounded-md border border-gray-300 bg-white">
+          <a
+            onClick={() => setOpenAddresses(true)}
+            href="javascript:void(0)"
+            className="flex justify-between items-center p-3"
+          >
             <span>
-              {selectedAddress.street} {selectedAddress.number}
+              {selectedAddress ? (
+                <>
+                  <p className="font-bold">
+                    {selectedAddress.street} {selectedAddress.number}
+                  </p>
+                  <p className="text-gray-500 text-xs">Change address</p>
+                </>
+              ) : addressesLoading ? (
+                <div className="skeleton h-4 w-28"></div>
+              ) : (
+                "No address selected..."
+              )}
             </span>
-          ) : (addressesLoading
-                ? <div className="skeleton h-4 w-28"></div>
-                : "No address selected..."
-          )}
-        </span>
-        <ChevronDownIcon className="size-4" />
-      </button>
+            <ChevronRightIcon className="size-6" />
+          </a>
+        </div>
+      )}
 
       <Dialog
         open={openAddresses}
@@ -132,14 +167,13 @@ function Addresses() {
                     className="btn btn-circle size-8"
                     onClick={() => setOpenAddresses(false)}
                   >
-                    <XMarkIcon className="size-6" />
+                    <XMarkIcon className="size-4" />
                   </button>
                 </div>
               </div>
-
               <div>
-                {!addresses.length ? (
-                  <div className="my-4 text-2xl text-center text-gray-400">
+                {!addresses?.length ? (
+                  <div className="my-4 text-xl text-center text-gray-400">
                     No addresses yet...
                   </div>
                 ) : (
@@ -152,17 +186,16 @@ function Addresses() {
                   </div>
                 )}
               </div>
-
               <div className="mt-5 sm:mt-6">
                 <button
-                  type="button"
                   onClick={() => {
                     setOpenCreateAddress(true);
                     setOpenAddresses(false);
                   }}
+                  type="button"
                   className="inline-flex w-full justify-center btn btn-accent"
                 >
-                  Add New Address
+                  Add new address
                 </button>
               </div>
             </DialogPanel>
@@ -204,7 +237,7 @@ function Addresses() {
                     {/* <GoogleMap
                       apiKey=""
                       defaultCenter={center}
-                      defaultZoom={10}
+                      defaultZoom={5}
                       options={{}}
                       mapMinHeight="400px"
                       onGoogleApiLoaded={onGoogleApiLoaded}
@@ -215,11 +248,11 @@ function Addresses() {
                         lng={center.lng}
                         markerId={"address-location"}
                         draggable={true}
-                      />
+                      ></MapMarker>
                     </GoogleMap> */}
                   </div>
                   <div className="mt-2">
-                    <AddressForm onSubmit={onSubmit} loading={false} />
+                    <AddressForm onSubmit={onSubmit} loading={loading} />
                   </div>
                 </div>
               </div>
