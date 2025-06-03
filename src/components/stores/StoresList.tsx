@@ -26,14 +26,14 @@ function StoresList({ layout, stores }: Props) {
     <Link to={"/stores/" + store.id} key={store.id}>
       <div className="card bg-base-100 w-full shadow-sm">
         <figure className="relative">
-          <img src={store.cover['original_url']} alt={store.name} />
+          <img src={store.cover} alt={store.name} />
           {store.logo && (
             <div
               className="avatar absolute"
               style={{ left: "15px", bottom: "15px" }}
             >
               <div className="w-[40px] ring-gray-300 ring-offset-base-100 rounded-full ring ring-offset-2">
-                <img src={store.logo['original_url']} />
+                <img src={store.logo} />
               </div>
             </div>
           )}
@@ -71,7 +71,7 @@ function StoresList({ layout, stores }: Props) {
           <Link to={"/stores/" + store.id} className="flex gap-x-4 py-5">
             <img
               alt=""
-              src={store.logo['original_url']}
+              src={store.logo}
               className="size-12 flex-none rounded-full bg-gray-50"
             />
             <div className="min-w-0">

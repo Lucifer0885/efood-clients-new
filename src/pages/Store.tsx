@@ -133,7 +133,7 @@ function Store() {
       <div
         className="hero relative h-[200px]"
         style={{
-          backgroundImage: "url(" + store?.cover["original_url"] + ")",
+          backgroundImage: "url(" + store?.cover + ")",
         }}
       >
         <div
@@ -198,7 +198,7 @@ function Store() {
           <h1 className="font-bold text-lg">{store?.name}</h1>
           <div className="avatar">
             <div className="w-[50px] ring-gray-300 ring-offset-base-100 rounded-full ring ring-offset-2">
-              <img src={store?.logo["original_url"]} />
+              <img src={store?.logo} />
             </div>
           </div>
         </div>
