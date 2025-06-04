@@ -36,3 +36,5 @@ export type StoreResponse = BaseResponse<{
 export type PossibleStoreListLayout = 'grid' | 'list';
 
 export type ShippingMethod = "delivery" | "takeaway";
+
+export type PaymentMethod = "cod" | "card";

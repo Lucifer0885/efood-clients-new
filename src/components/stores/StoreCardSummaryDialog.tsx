@@ -8,12 +8,15 @@ import type { Store } from "../../types/stores";
 import { useCartStore } from "../../context/CartStore";
 import Addresses from "../header/Addresses";
 import StoreCartSummaryProduct from "./StoreCartSummaryProduct";
+import StorePaymentMethod from "./StorePaymentMethod";
 
 type Props = {
   open: boolean;
   store: Store;
   setOpen: (value: boolean) => void;
   onOpenShippingMethod: () => void;
+  onOpenPaymentMethod: () => void;
+  onSendOrder: () => void;
 };
 
 function StoreCartSummaryDialog({
@@ -21,12 +24,23 @@ function StoreCartSummaryDialog({
   store,
   setOpen,
   onOpenShippingMethod,
+  onOpenPaymentMethod,
+  onSendOrder,
 }: Props) {
   const cartProducts = useCartStore(
     (state) => state.selectStore(+store.id!)?.products
   );
   const shippingMethod = useCartStore(
     (state) => state.selectStore(+store.id)?.shippingMethod
+  );
+  const cartTotalProducts = useCartStore(
+    (state) => state.storeTotalProduct(+store.id!)
+  );
+  const cartTotalPrice = useCartStore(
+    (state) => state.storeTotalPrice(+store.id!)
+  );
+  const paymentMethod = useCartStore(
+    (state) => state.selectStore(+store.id!)?.paymentMethod
   );
 
   return (
@@ -57,7 +71,7 @@ function StoreCartSummaryDialog({
               <h1 className="font-bold text-2xl">Cart</h1>
               <a
                 href="javascript:void(0)"
-                className="flex items-center gap-2"
+                className="inline-flex items-center gap-2"
                 onClick={() => onOpenShippingMethod()}
               >
                 <span className="text-xs capitalize">
@@ -67,7 +81,21 @@ function StoreCartSummaryDialog({
               </a>
             </div>
             <div className="mt-3 px-4 pb-6 border-b border-gray-300">
-              <Addresses cartSummary={true} />
+              <div><Addresses cartSummary={true} /></div>
+              <div className="flex gap-4 mt-5">
+                <input
+                  id="coupon"
+                  name="coupon"
+                  type="text"
+                  placeholder="Coupon code"
+                  autoComplete='off'
+                  className="input input-lg"
+                />
+                <StorePaymentMethod
+                  onClick={onOpenPaymentMethod}
+                  paymentMethod={paymentMethod}
+                />
+              </div>
             </div>
             <div className="p-4">
               {cartProducts?.map((cartProduct, index, array) => {
@@ -95,37 +123,42 @@ function StoreCartSummaryDialog({
               </div>
               <div className="grow-1">Cart total</div>
               <div className="grow-0 font-bold text-xs">
-                {cartProducts
-                  ?.reduce((total, product) => {
-                    return total + product.quantity * product.product.price;
-                  }, 0)
-                  .toFixed(2)}
-                €
+                {cartTotalPrice?.toFixed(2)}€
               </div>
             </div>
             <div
               className="fixed p-3 w-full bg-white z-1"
               style={{ bottom: 0, left: 0 }}
             >
-              <button className="btn btn-lg btn-success text-white btn-block p-2 grid grid-cols-3">
-                <div className="col-span-1 text-start">
-                  <span className="inline-block p-1 min-w-[28px] font-bold text-black text-center rounded-lg bg-white text-sm">
-                    {cartProducts?.reduce((total, product) => {
-                      return total + product.quantity;
-                    }, 0)}
-                  </span>
-                </div>
-                <div className="col-span-1 font-bold text-lg text-black text-center">
-                  Continue
-                </div>
-                <div className="col-span-1 font-bold text-black text-end">
-                  {cartProducts
-                    ?.reduce((total, product) => {
-                      return total + product.quantity * product.product.price;
-                    }, 0)
-                    .toFixed(2)}
-                  €
-                </div>
+              <button
+                className="btn btn-lg btn-success text-white btn-block p-2 grid grid-cols-3"
+                onClick={() => {
+                  if (cartTotalProducts > 0) {
+                    onSendOrder();
+                  }else {
+                    setOpen(false);
+                  }
+                }}
+              >
+                {cartTotalProducts > 0 ? (
+                  <>
+                    <div className="col-span-1 text-start">
+                      <span className="inline-block p-1 min-w-[28px] font-bold text-black text-center rounded-lg bg-white text-sm">
+                        { cartTotalProducts }
+                      </span>
+                    </div>
+                    <div className="col-span-1 font-bold text-lg text-black text-center">
+                      Complete
+                    </div>
+                    <div className="col-span-1 font-bold text-black text-end">
+                      {cartTotalPrice?.toFixed(2)}€
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-black col-span-3">
+                    Add more
+                  </div>
+                )}
               </button>
             </div>
           </DialogPanel>

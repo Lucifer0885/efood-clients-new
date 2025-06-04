@@ -10,12 +10,20 @@ import StoreInformationDialog from "../components/stores/StoreInformationDialog"
 import StoreProductDialog from "../components/stores/StoreProductDialog";
 import StoreCartSummaryDialog from "../components/stores/StoreCardSummaryDialog";
 import StoreShippingMethodDialog from "../components/stores/StoreShippingMethodDialong";
+import StorePaymentMethodDialog from "../components/stores/StorePaymentMethodDialog";
+import type { CreateOrderPayload, OrderCreateResponse } from "../types/orders";
 
 function Store() {
   const params = useParams();
 
   const cartProducts = useCartStore(
     (state) => state.selectStore(+params.id!)?.products
+  );
+  const paymentMethod = useCartStore(
+    (state) => state.selectStore(+params.id!)?.paymentMethod
+  );
+  const shippingMethod = useCartStore(
+    (state) => state.selectStore(+params.id!)?.shippingMethod
   );
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,6 +35,7 @@ function Store() {
   const [openProduct, setOpenProduct] = useState<boolean>(false);
   const [openCartSummary, setOpenCartSummary] = useState<boolean>(false);
   const [openShippingMethod, setOpenShippingMethod] = useState<boolean>(false);
+  const [openPaymentMethod, setOpenPaymentMethod] = useState<boolean>(false);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productQuantity, setProductQuantity] = useState<number>(1);
@@ -77,6 +86,43 @@ function Store() {
     setSelectedProduct(product);
     setProductQuantity(1);
   };
+
+  const onSendOrder = () => {
+    setLoading(true);
+    const address = localStorage.getItem("address") as string;
+    const payload: CreateOrderPayload = {
+      address_id: JSON.parse(address).id as number,
+      store_id: store!.id,
+      payment_method: paymentMethod,
+      shipping_method: shippingMethod,
+      note: "",
+      tip: 0,
+      coupon_code: null,
+      products: cartProducts?.map((product) => ({
+        product_id: product.product.id,
+        quantity: product.quantity,
+        note: product.note || "",
+      })),
+    }
+    axiosInstance
+      .post<OrderCreateResponse>("/client/orders", payload)
+      .then((response) => {
+        if (!response.data.success) {
+          //TODO: Handle error
+          return;
+        }
+
+        if (response.data.data.viva_redirect_url) {
+          window.location.href = response.data.data.viva_redirect_url;
+          return;
+        }
+
+        //TODO: Handle order success
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
 
   const skeleton = (
     <div>
@@ -292,6 +338,8 @@ function Store() {
           setOpen={setOpenCartSummary}
           store={store}
           onOpenShippingMethod={() => setOpenShippingMethod(true)}
+          onOpenPaymentMethod={() => setOpenPaymentMethod(true)}
+          onSendOrder={()=> onSendOrder()}
         />
       )}
 
@@ -299,6 +347,14 @@ function Store() {
         <StoreShippingMethodDialog
           open={openShippingMethod}
           setOpen={setOpenShippingMethod}
+          store={store}
+        />
+      )}
+
+      {!!store && (
+        <StorePaymentMethodDialog
+          open={openPaymentMethod}
+          setOpen={setOpenPaymentMethod}
           store={store}
         />
       )}

@@ -2,15 +2,18 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product } from "../types/products";
 import type { ShippingMethod } from "../types/stores";
+import type { PaymentMethod } from '../types/stores';
 
 export type CartProduct = {
   product: Product;
   quantity: number;
+  note?: string;
 };
 
 type CartStoreStore = {
   products: CartProduct[];
   shippingMethod: ShippingMethod;
+  paymentMethod: PaymentMethod;
 }
 
 type CartStore = {
@@ -22,16 +25,19 @@ type CartStore = {
     storeId: number,
     productId: number
   ) => CartProduct | undefined;
+  storeTotalProduct: (storeId: number) => number;
+  storeTotalPrice: (storeId: number) => number;
 
   removeStore: (storeId: number) => void;
 
-  addItem: (storeId: number, product: Product, quantity: number) => void;
+  addItem: (storeId: number, product: Product, quantity: number, note?: string) => void;
   removeItem: (storeId: number, product: Product) => void;
 
   increaseQuantity: (storeId: number, product: Product, by?: number) => void;
   decreaseQuantity: (storeId: number, product: Product, by?: number) => void;
 
   updateShippingMethod: (storeId: number, shippingMethod: ShippingMethod) => void;
+  updatePaymentMethod: (storeId: number, paymentMethod: PaymentMethod) => void;
 };
 
 export const useCartStore = create(
@@ -42,10 +48,25 @@ export const useCartStore = create(
       selectStore: (storeId: number) => {
         return get().stores?.[storeId];
       },
+
       selectProduct: (storeId: number, productId: number) => {
         return get().stores?.[storeId]?.products.find(
           (p) => p.product.id === productId
         );
+      },
+
+      storeTotalProduct: (storeId: number) => {
+        return get().stores?.[storeId]?.products.reduce(
+          (total, product) => total + product.quantity,
+          0
+        )
+      },
+
+      storeTotalPrice: (storeId: number) => {
+        return get().stores?.[storeId]?.products.reduce(
+          (total, product) => total + product.product.price * product.quantity,
+          0
+        )
       },
 
       removeStore: (storeId: number) => {
@@ -55,14 +76,15 @@ export const useCartStore = create(
         });
       },
 
-      addItem: (storeId: number, product: Product, quantity: number) =>
+      addItem: (storeId: number, product: Product, quantity: number, note?: string) =>
         set((state) => {
           let stores = state.stores;
 
           if (!stores[storeId]) {
             stores[storeId] = {
               products: [],
-              shippingMethod: 'delivery'
+              shippingMethod: 'delivery',
+              paymentMethod: 'card',
             };
           }
 
@@ -72,11 +94,12 @@ export const useCartStore = create(
 
           if (productIndex !== -1) {
             stores[storeId].products[productIndex].quantity += quantity;
+            stores[storeId].products[productIndex].note = note
             stores[storeId].products = [...stores[storeId].products];
           } else {
             stores[storeId].products = [
               ...stores[storeId].products,
-              { product, quantity },
+              { product, quantity, note },
             ];
           }
 
@@ -97,7 +120,8 @@ export const useCartStore = create(
           );
 
           if (!stores[storeId].products.length) {
-            get().removeStore(storeId);
+            // TODO: clear cart local storage if products[] is empty after some time
+            // get().removeStore(storeId);
             return { ...state };
           }
 
@@ -157,6 +181,15 @@ export const useCartStore = create(
           state.stores = stores;
           return { ...state };
         }),
+      updatePaymentMethod: (storeId: number, paymentMethod: PaymentMethod) =>
+        set((state) => {
+          const stores = state.stores;
+          if (!stores[storeId]) return state;
+
+          stores[storeId].paymentMethod = paymentMethod;
+          state.stores = stores;
+          return { ...state };
+        })
     }),
     {
       name: "cart",

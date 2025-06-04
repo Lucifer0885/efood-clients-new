@@ -1,15 +1,25 @@
 import Header from "./Header";
 import Footer from "./Footer";
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router";
+import { useEffect, useState } from "react";
 
 function MainLayout() {
+  const location = useLocation();
+  const [showHeader, setShowHeader] = useState<boolean>(true);
+
+  useEffect(() => {
+    const hideHeader = ["/stores/", "/account", '/orders', '/addresses'].some((path) =>
+      location.pathname.includes(path)
+    );
+    setShowHeader(!hideHeader);
+  }, [location]);
   return (
     <>
-        <Header />
-        <div>
-          <Outlet />
-        </div>
-        {/* <Footer /> */}
+      {showHeader && <Header />}
+      <div>
+        <Outlet />
+      </div>
+      {/* <Footer /> */}
     </>
   );
 }
