@@ -1,54 +1,110 @@
-# React + TypeScript + Vite
+# 🍔 eFood Clients
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![License](https://img.shields.io/github/license/Lucifer0885/efood-clients-new)
+![TypeScript](https://img.shields.io/badge/TypeScript-98.9%25-blue)
 
-Currently, two official plugins are available:
+A modern food delivery platform client application built with React and TypeScript.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📝 Overview
 
-## Expanding the ESLint configuration
+eFood Clients is a web application for food delivery services that allows users to browse restaurants, view menus, place orders, and track deliveries. This project is built with the latest React 19 and utilizes TypeScript for type safety.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✨ Features
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- 🔎 Restaurant browsing and search
+- 🍽️ Menu exploration
+- 🛒 Order placement and tracking
+- 🗺️ Google Maps integration for location services
+- 📱 Responsive design with Tailwind CSS
+- ⚡ State management with Zustand
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ Tech Stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Frontend Framework**: React 19
+- **Language**: TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS, DaisyUI
+- **State Management**: Zustand
+- **UI Components**: Headless UI, Hero Icons
+- **Maps Integration**: Google Maps React Markers
+- **HTTP Client**: Axios
+- **Routing**: React Router
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (latest LTS version recommended)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Lucifer0885/efood-clients-new.git
+   cd efood-clients-new
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
+
+3. Copy the environment example file and configure your environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Open your browser and navigate to http://localhost:5173 (default Vite port)
+
+## 📦 Available Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build the project for production
+- `npm run lint` - Run ESLint to check code quality
+- `npm run preview` - Preview the production build locally
+
+## 📁 Project Structure
+
+- `/public` - Static assets
+- `/src` - Source code
+  - `/api` - axios instance
+  - `/assets` - project assets
+  - `/components` - React components
+  - `/context` - App Contexts/Providers
+  - `/layout` - Pages layouts
+  - `/pages` - Page components
+  - `/types` - TypeScript type definitions
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 🪪 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- React Team for the amazing framework
+- Tailwind CSS for the utility-first CSS framework
+- Vite for the lightning-fast build tool
+
+---
+
+Created by [Lucifer0885](https://github.com/Lucifer0885) | Last Updated: 2025-06-04 02:19:12 UTC
