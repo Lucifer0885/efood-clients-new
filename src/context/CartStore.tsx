@@ -14,6 +14,7 @@ type CartStoreStore = {
   products: CartProduct[];
   shippingMethod: ShippingMethod;
   paymentMethod: PaymentMethod;
+  couponCode: string;
 }
 
 type CartStore = {
@@ -38,6 +39,9 @@ type CartStore = {
 
   updateShippingMethod: (storeId: number, shippingMethod: ShippingMethod) => void;
   updatePaymentMethod: (storeId: number, paymentMethod: PaymentMethod) => void;
+
+  setCouponCode: (storeId: number, couponCode: string) => void;
+  clearStore: (storeId: number) => void;
 };
 
 export const useCartStore = create(
@@ -85,6 +89,7 @@ export const useCartStore = create(
               products: [],
               shippingMethod: 'delivery',
               paymentMethod: 'card',
+              couponCode: '',
             };
           }
 
@@ -121,7 +126,6 @@ export const useCartStore = create(
 
           if (!stores[storeId].products.length) {
             // TODO: clear cart local storage if products[] is empty after some time
-            // get().removeStore(storeId);
             return { ...state };
           }
 
@@ -187,6 +191,24 @@ export const useCartStore = create(
           if (!stores[storeId]) return state;
 
           stores[storeId].paymentMethod = paymentMethod;
+          state.stores = stores;
+          return { ...state };
+        }),
+      setCouponCode: (storeId: number, couponCode: string) =>
+        set((state) => {
+          const stores = state.stores;
+          if (!stores[storeId]) return state;
+          stores[storeId].couponCode = couponCode;
+          state.stores = stores;
+          return { ...state };
+        }),
+      clearStore: (storeId: number) =>
+        set((state) => {
+          const stores = state.stores;
+          if (!stores[storeId]) return state;
+
+          delete stores[storeId];
+
           state.stores = stores;
           return { ...state };
         })

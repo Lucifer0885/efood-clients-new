@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import type { StoreResponse, Store as StoreType } from "../types/stores";
 import axiosInstance from "../api/axiosInstance";
 import type { Product, ProductCategory } from "../types/products";
@@ -15,6 +15,7 @@ import type { CreateOrderPayload, OrderCreateResponse } from "../types/orders";
 
 function Store() {
   const params = useParams();
+  const navigate = useNavigate();
 
   const cartProducts = useCartStore(
     (state) => state.selectStore(+params.id!)?.products
@@ -25,8 +26,13 @@ function Store() {
   const shippingMethod = useCartStore(
     (state) => state.selectStore(+params.id!)?.shippingMethod
   );
+  const couponCode = useCartStore(
+    (state) => state.selectStore(+params.id!)?.couponCode
+  );
+  const clearCart = useCartStore((state) => state.clearStore);
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [orderLoading, setOrderLoading] = useState<boolean>(false);
   const [store, setStore] = useState<StoreType | null>(null);
   const [showBanner, setShowBanner] = useState<boolean>(false);
   const [showStoreName, setShowStoreName] = useState<boolean>(false);
@@ -88,7 +94,7 @@ function Store() {
   };
 
   const onSendOrder = () => {
-    setLoading(true);
+    setOrderLoading(true);
     const address = localStorage.getItem("address") as string;
     const payload: CreateOrderPayload = {
       address_id: JSON.parse(address).id as number,
@@ -97,7 +103,7 @@ function Store() {
       shipping_method: shippingMethod,
       note: "",
       tip: 0,
-      coupon_code: null,
+      coupon_code: couponCode,
       products: cartProducts?.map((product) => ({
         product_id: product.product.id,
         quantity: product.quantity,
@@ -112,15 +118,16 @@ function Store() {
           return;
         }
 
+        clearCart(+params.id!);
+
         if (response.data.data.viva_redirect_url) {
           window.location.href = response.data.data.viva_redirect_url;
           return;
         }
-
-        //TODO: Handle order success
+        navigate("/orders/" + response.data.data.order.id);
       })
       .finally(() => {
-        setLoading(false);
+        setOrderLoading(false);
       });
   }
 
@@ -337,6 +344,7 @@ function Store() {
           open={openCartSummary}
           setOpen={setOpenCartSummary}
           store={store}
+          loading={orderLoading}
           onOpenShippingMethod={() => setOpenShippingMethod(true)}
           onOpenPaymentMethod={() => setOpenPaymentMethod(true)}
           onSendOrder={()=> onSendOrder()}

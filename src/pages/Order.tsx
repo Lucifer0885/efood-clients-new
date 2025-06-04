@@ -109,8 +109,8 @@ function Order() {
             </div>
             <div className="font-bold text-xl px-5 mt-5">Cart</div>
             <ul className="divide-y divide-gray-100 px-5 mt-5">
-              {order.products.map((product) => (
-                <li className="flex gap-4 items-center py-5">
+              {order.products.map((product, index) => (
+                <li key={index} className="flex gap-4 items-center py-5">
                   <div className="w-[25px] h-[25px] flex items-center justify-center rounded-md text-sm font-bold bg-gray-200 grow-0">
                     {product.quantity}
                   </div>

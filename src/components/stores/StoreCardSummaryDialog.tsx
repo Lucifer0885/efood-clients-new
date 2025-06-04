@@ -13,6 +13,7 @@ import StorePaymentMethod from "./StorePaymentMethod";
 type Props = {
   open: boolean;
   store: Store;
+  loading: boolean;
   setOpen: (value: boolean) => void;
   onOpenShippingMethod: () => void;
   onOpenPaymentMethod: () => void;
@@ -22,6 +23,7 @@ type Props = {
 function StoreCartSummaryDialog({
   open,
   store,
+  loading,
   setOpen,
   onOpenShippingMethod,
   onOpenPaymentMethod,
@@ -33,14 +35,18 @@ function StoreCartSummaryDialog({
   const shippingMethod = useCartStore(
     (state) => state.selectStore(+store.id)?.shippingMethod
   );
-  const cartTotalProducts = useCartStore(
-    (state) => state.storeTotalProduct(+store.id!)
+  const cartTotalProducts = useCartStore((state) =>
+    state.storeTotalProduct(+store.id!)
   );
-  const cartTotalPrice = useCartStore(
-    (state) => state.storeTotalPrice(+store.id!)
+  const cartTotalPrice = useCartStore((state) =>
+    state.storeTotalPrice(+store.id!)
   );
   const paymentMethod = useCartStore(
     (state) => state.selectStore(+store.id!)?.paymentMethod
+  );
+  const setCouponCode = useCartStore((state) => state.setCouponCode);
+  const couponCode = useCartStore(
+    (state) => state.selectStore(+store.id!)?.couponCode
   );
 
   return (
@@ -81,15 +87,19 @@ function StoreCartSummaryDialog({
               </a>
             </div>
             <div className="mt-3 px-4 pb-6 border-b border-gray-300">
-              <div><Addresses cartSummary={true} /></div>
+              <div>
+                <Addresses cartSummary={true} />
+              </div>
               <div className="flex gap-4 mt-5">
                 <input
                   id="coupon"
                   name="coupon"
                   type="text"
                   placeholder="Coupon code"
-                  autoComplete='off'
+                  autoComplete="off"
                   className="input input-lg"
+                  defaultValue={couponCode}
+                  onChange={(e) => setCouponCode(store.id!, e.target.value)}
                 />
                 <StorePaymentMethod
                   onClick={onOpenPaymentMethod}
@@ -132,19 +142,22 @@ function StoreCartSummaryDialog({
             >
               <button
                 className="btn btn-lg btn-success text-white btn-block p-2 grid grid-cols-3"
+                disabled={loading}
                 onClick={() => {
                   if (cartTotalProducts > 0) {
                     onSendOrder();
-                  }else {
+                  } else {
                     setOpen(false);
                   }
                 }}
               >
-                {cartTotalProducts > 0 ? (
+                {loading ? (
+                  <span className="loading loading-spinner loading-sm col-span-3" />
+                ) : cartTotalProducts > 0 ? (
                   <>
                     <div className="col-span-1 text-start">
                       <span className="inline-block p-1 min-w-[28px] font-bold text-black text-center rounded-lg bg-white text-sm">
-                        { cartTotalProducts }
+                        {cartTotalProducts}
                       </span>
                     </div>
                     <div className="col-span-1 font-bold text-lg text-black text-center">
