@@ -1,21 +1,43 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.tsx";
 import { Link } from "react-router";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 
 function Register() {
-  const { loading, register } = useAuth();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { loading, error: authError, register } = useAuth();
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   const onRegister = () => {
+    setError("");
+
+    if (!name) {
+      setError("Name is required");
+      return;
+    }
+
+    if (!email) {
+      setError("Email is required");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError("Password do not match!");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password is less than 6 characters");
       return;
     }
     register({ name, email, password });
-  }
+  };
 
   return (
     <>
@@ -29,7 +51,10 @@ function Register() {
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm/6 font-medium text-gray-900">
+              <label
+                htmlFor="name"
+                className="block text-sm/6 font-medium text-gray-900"
+              >
                 Name
               </label>
               <div className="mt-2">
@@ -39,14 +64,18 @@ function Register() {
                   onChange={(e) => setName(e.target.value)}
                   name="name"
                   type="text"
+                  placeholder="Username"
                   required
                   autoComplete="off"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  className="input input-lg w-full"
                 />
               </div>
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900">
+              <label
+                htmlFor="email"
+                className="block text-sm/6 font-medium text-gray-900"
+              >
                 Email address
               </label>
               <div className="mt-2">
@@ -56,16 +85,20 @@ function Register() {
                   onChange={(e) => setEmail(e.target.value)}
                   name="email"
                   type="email"
+                  placeholder="Email"
                   required
                   autoComplete="email"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  className="input input-lg w-full"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
+                <label
+                  htmlFor="password"
+                  className="block text-sm/6 font-medium text-gray-900"
+                >
                   Password
                 </label>
                 {/* <div className="text-sm">
@@ -75,51 +108,85 @@ function Register() {
                 </div> */}
               </div>
               <div className="mt-2">
-                <input
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                />
+                <label className="input input-lg w-full">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(ev) => setPassword(ev.target.value)}
+                    name="password"
+                    required
+                    placeholder="Password"
+                    className="grow"
+                  />
+                  <button
+                    className="btn btn-sm btn-circle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    type="button"
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="size-4" />
+                    ) : (
+                      <EyeIcon className="size-4" />
+                    )}
+                  </button>
+                </label>
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="confirm-password" className="block text-sm/6 font-medium text-gray-900">
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm/6 font-medium text-gray-900"
+                >
                   Confirm Password
                 </label>
               </div>
               <div className="mt-2">
-                <input
-                  id="confirm-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  name="confirm-password"
-                  type="password"
-                  required
-                  autoComplete="off"
-                  className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                />
+                <label className="input input-lg w-full">
+                  <input
+                    id="confirm-password"
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(ev) => setConfirmPassword(ev.target.value)}
+                    name="confirm-password"
+                    required
+                    placeholder="Confirm Password"
+                    className="grow"
+                  />
+                  <button
+                    className="btn btn-sm btn-circle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    type="button"
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="size-4" />
+                    ) : (
+                      <EyeIcon className="size-4" />
+                    )}
+                  </button>
+                </label>
               </div>
             </div>
 
             <div className="flex flex-col gap-3">
+              {(error || authError) && (
+                <div className="text-error text-center">
+                  {error || authError}
+                </div>
+              )}
               <button
                 onClick={onRegister}
                 disabled={loading}
                 type="submit"
                 className="flex w-full justify-center btn btn-primary"
               >
-                {
-                  loading
-                    ? <span className="loading loading-spinner"></span>
-                    : "Register"
-                }
+                {loading ? (
+                  <span className="loading loading-spinner"></span>
+                ) : (
+                  "Register"
+                )}
               </button>
               <Link
                 to={"/login"}

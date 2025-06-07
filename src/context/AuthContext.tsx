@@ -1,4 +1,4 @@
-import { createContext, use, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useState } from "react";
 import type {
   LoginCredentials,
@@ -6,6 +6,7 @@ import type {
   User,
   RegisterCredentials,
   RegisterResponse,
+  UpdateResponse,
 } from "../types/user";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router";
@@ -15,16 +16,22 @@ const AuthContext = createContext<{
   user: User | null;
   token: string | null;
   loading: boolean;
+  error: string;
   login: ({ email, password }: LoginCredentials) => void;
   register: ({ name, email, password }: RegisterCredentials) => void;
   logout: () => void;
+  update: (name: string, phone?: string) => void;
+  changePassword: (currentPassword: string, password: string) => void;
 }>({
   user: null,
   token: null,
   loading: false,
+  error: "",
   login: () => {},
   register: () => {},
   logout: () => {},
+  update: () => {},
+  changePassword: () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -37,6 +44,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token")
   );
+  const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = ({ email, password }: LoginCredentials) => {
-  setLoading(true);
+    setLoading(true);
     axiosInstance
       .post<LoginResponse>("/client/auth/login", { email, password })
       .then((res) => {
@@ -59,6 +67,10 @@ export const AuthProvider = ({ children }) => {
 
         const data = res.data.data;
         afterAuthentication(data);
+        setError("");
+      })
+      .catch((e) => {
+        setError(e.response.data.message);
       })
       .finally(() => {
         setLoading(false);
@@ -80,6 +92,10 @@ export const AuthProvider = ({ children }) => {
 
         const data = res.data.data;
         afterAuthentication(data);
+        setError("");
+      })
+      .catch((e) => {
+        setError(e.response.data.message);
       })
       .finally(() => {
         setLoading(false);
@@ -97,6 +113,49 @@ export const AuthProvider = ({ children }) => {
     navigate("/");
   };
 
+  const update = (name: string, phone?: string) => {
+    setLoading(true);
+    axiosInstance
+      .post<UpdateResponse>("/client/auth/update", { name, phone })
+      .then((response) => {
+        if (!response.data.success) {
+          return;
+        }
+
+        const data = response.data.data;
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setError("");
+      })
+      .catch((e) => {
+        setError(e.response.data.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const changePassword = (currentPassword: string, password: string) => {
+    setLoading(true);
+    axiosInstance
+      .post<UpdateResponse>("/client/auth/change-password", {
+        current_password: currentPassword,
+        password,
+      })
+      .then((response) => {
+        if (!response.data.success) {
+          return;
+        }
+        setError("");
+        navigate("/profile");
+      })
+      .catch((e) => {
+        setError(e.response.data.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -108,11 +167,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    socket.emit("user-id", { user_id: user?.id })
+    socket.emit("user-id", { user_id: user?.id });
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        error,
+        login,
+        register,
+        update,
+        changePassword,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

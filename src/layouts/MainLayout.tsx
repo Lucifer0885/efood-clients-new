@@ -8,7 +8,13 @@ function MainLayout() {
   const [showHeader, setShowHeader] = useState<boolean>(true);
 
   useEffect(() => {
-    const hideHeader = ["/stores/", "/account", '/orders', '/addresses'].some((path) =>
+    const hideHeader = [
+      "/stores/",
+      "/account",
+      '/orders',
+      '/addresses',
+      '/profile',
+    ].some((path) =>
       location.pathname.includes(path)
     );
     setShowHeader(!hideHeader);
