@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from "react";
+import { createContext, use, useContext, useEffect } from "react";
 import { useState } from "react";
 import type {
   LoginCredentials,
@@ -9,6 +9,7 @@ import type {
 } from "../types/user";
 import axiosInstance from "../api/axiosInstance";
 import { useNavigate } from "react-router";
+import { socket } from "../api/sockets";
 
 const AuthContext = createContext<{
   user: User | null;
@@ -105,6 +106,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("address");
     navigate("/");
   };
+
+  useEffect(() => {
+    socket.emit("user-id", { user_id: user?.id })
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
