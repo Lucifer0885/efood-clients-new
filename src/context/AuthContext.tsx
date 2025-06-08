@@ -168,7 +168,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     socket.emit("user-id", { user_id: user?.id });
-  }, [user]);
+  }, []);
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket.id);
+      socket.emit("user-id", { user_id: user?.id });
+    });
+  }, []);
 
   return (
     <AuthContext.Provider

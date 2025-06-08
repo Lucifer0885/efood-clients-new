@@ -14,6 +14,13 @@ import { Link, useParams } from "react-router";
 import axiosInstance from "../api/axiosInstance";
 import type { Order as O, OrderResponse } from "../types/orders";
 import dayjs from "dayjs";
+import { socket } from "../api/sockets";
+
+type DriverLocation = {
+  driver_id: number;
+  latitude: number;
+  longitude: number;
+}
 
 function Order() {
   const params = useParams();
@@ -21,6 +28,7 @@ function Order() {
 
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState<O>();
+  const [driverLocation, setDriverLocation] = useState<DriverLocation>();
 
   useEffect(() => {
     axiosInstance
@@ -35,6 +43,16 @@ function Order() {
       .finally(() => {
         setLoading(false);
       });
+
+      socket.on("driver-tracking-" + params.id, (data)=> {
+        setDriverLocation(data);
+        console.log("Driver tracking data received:", data);
+      })
+
+      return () => {
+        socket.off("driver-tracking-" + params.id);
+        console.log("Socket event listener removed");
+      }
   }, []);
 
   return (
@@ -48,6 +66,9 @@ function Order() {
       </div>
       <div className="p-4">
         <div className="font-bold text-2xl">Your Order</div>
+        <div>
+          <pre>{JSON.stringify(driverLocation, null, 4)}</pre>
+        </div>
         {loading || !order ? (
           "Loading"
         ) : (
